@@ -1,1 +1,117 @@
 
+import time
+import sys
+
+# Original Program 1: Normal Recursion
+naive_calls = 0
+
+def ways_naive(n):
+    global naive_calls
+    naive_calls += 1
+
+    if n <= 1:
+        return n
+
+    return ways_naive(n-1) + ways_naive(n-2)
+
+
+# Original Program 2: Memoization
+memo_calls = 0
+
+def ways_memo(n, memo=None):
+    global memo_calls
+
+    if memo is None:
+        memo = {}
+
+    if n in memo:
+        return memo[n]
+
+    memo_calls += 1
+
+    if n <= 1:
+        memo[n] = n
+    else:
+        memo[n] = ways_memo(n-1, memo) + ways_memo(n-2, memo)
+
+    return memo[n]
+
+
+# Redesigned Program 3: Iterative Loop
+loop_calls = 0
+
+def ways_loop(n):
+    global loop_calls
+    loop_calls = 1
+
+    if n <= 1:
+        return n
+
+    a, b = 0, 1
+
+    for i in range(2, n+1):
+        a, b = b, a+b
+
+    return b
+
+
+# Test all programs
+n = 25
+
+start = time.perf_counter()
+naive_calls = 0
+result1 = ways_naive(n)
+time1 = time.perf_counter() - start
+
+start = time.perf_counter()
+memo_calls = 0
+result2 = ways_memo(n)
+time2 = time.perf_counter() - start
+
+start = time.perf_counter()
+result3 = ways_loop(n)
+time3 = time.perf_counter() - start
+
+
+print("FIBONACCI PROGRAM COMPARISON")
+print("--------------------------------")
+print("Naive Result:", result1)
+print("Naive Calls:", naive_calls)
+print("Naive Time:", time1)
+
+print("\nMemo Result:", result2)
+print("Memo Calls:", memo_calls)
+print("Memo Time:", time2)
+
+print("\nLoop Result:", result3)
+print("Loop Calls:", loop_calls)
+print("Loop Time:", time3)
+
+
+# Test larger input
+print("\nLARGE INPUT TEST")
+
+n = 1000
+
+start = time.perf_counter()
+result = ways_loop(n)
+end = time.perf_counter()
+
+print("Fibonacci(1000):", result)
+print("Number of digits:", len(str(result)))
+print("Loop execution time:", end-start)
+
+
+# Recursion limit
+print("\nRECURSION LIMIT")
+print("Python recursion limit:", sys.getrecursionlimit())
+
+
+# Validate results
+print("\nVALIDATION")
+
+if result1 == result2 == result3:
+    print("All three programs produce the same result.")
+else:
+    print("Results do not match.")
+
