@@ -1,1 +1,201 @@
 
+import re
+import time
+from collections import defaultdict
+
+
+# STAGE 1: Normalize phone numbers
+def normalize_phone(phone):
+    if not phone:
+        return None
+
+    digits = re.sub(r'\D', '', str(phone))
+
+    if digits.startswith("91") and len(digits) == 12:
+        digits = digits[2:]
+
+    elif digits.startswith("0") and len(digits) == 11:
+        digits = digits[1:]
+
+    if len(digits) == 10:
+        return digits
+
+    return None
+
+
+# Normalize names
+def normalize_name(name):
+    return " ".join(name.lower().strip().split())
+
+
+# STAGE 2: Contact merging
+def merge_contacts(contacts):
+
+    parent = list(range(len(contacts)))
+
+    # Find operation
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    # Union operation
+    def union(a, b):
+        root_a = find(a)
+        root_b = find(b)
+
+        if root_a != root_b:
+            parent[root_b] = root_a
+
+    # Dictionary for phone number indexing
+    phone_index = {}
+
+    for i, contact in enumerate(contacts):
+
+        for phone in contact.get("phones", []):
+
+            number = normalize_phone(phone)
+
+            if number is None:
+                continue
+
+            if number in phone_index:
+                union(i, phone_index[number])
+            else:
+                phone_index[number] = i
+
+    # Group contacts
+    groups = defaultdict(list)
+
+    for i in range(len(contacts)):
+        groups[find(i)].append(contacts[i])
+
+    # Merge names, phone numbers and emails
+    result = []
+
+    for group in groups.values():
+
+        names = set()
+        phones = set()
+        emails = set()
+
+        for contact in group:
+
+            name = contact.get("name", "").strip()
+
+            if name:
+                names.add(name)
+
+            for phone in contact.get("phones", []):
+                number = normalize_phone(phone)
+
+                if number:
+                    phones.add(number)
+
+            for email in contact.get("emails", []):
+                if email and email.strip():
+                    emails.add(email.strip().lower())
+
+        result.append({
+            "names": names,
+            "phones": phones,
+            "emails": emails
+        })
+
+    return result
+
+
+# STAGE 3: Sample contact data
+contacts = [
+    {
+        "name": "Dr. Ravi",
+        "phones": ["+91 98400 12345"],
+        "emails": ["ravi@gmail.com"]
+    },
+    {
+        "name": "Ravi Kumar",
+        "phones": ["9840012345", "9876543210"],
+        "emails": ["ravi@yahoo.com"]
+    },
+    {
+        "name": "Arun",
+        "phones": ["9876501234"],
+        "emails": ["arun@gmail.com"]
+    },
+    {
+        "name": "Ravi",
+        "phones": ["09840012345"],
+        "emails": ["ravi@gmail.com"]
+    },
+    {
+        "name": "Kumar",
+        "phones": [],
+        "emails": ["kumar@gmail.com"]
+    }
+]
+
+
+# Display original contacts
+print("ORIGINAL CONTACTS")
+
+for contact in contacts:
+    print(contact)
+
+
+# Merge contacts
+merged = merge_contacts(contacts)
+
+print("\nMERGED CONTACTS")
+
+for i, contact in enumerate(merged, 1):
+    print("\nContact", i)
+    print("Names:", contact["names"])
+    print("Phone Numbers:", contact["phones"])
+    print("Emails:", contact["emails"])
+
+
+# STAGE 4: Verify result
+print("\nVALIDATION")
+
+print("Original contacts:", len(contacts))
+print("Merged contacts:", len(merged))
+
+if len(merged) == 3:
+    print("Contact merging successful")
+else:
+    print("Check contact merging")
+
+
+# Performance testing
+def performance_test(n):
+
+    test_contacts = []
+
+    for i in range(n):
+
+        phone = str(9000000000 + i)
+
+        test_contacts.append({
+            "name": "Person " + str(i),
+            "phones": [phone],
+            "emails": ["person" + str(i) + "@gmail.com"]
+        })
+
+    start = time.perf_counter()
+
+    result = merge_contacts(test_contacts)
+
+    end = time.perf_counter()
+
+    print("\nNumber of contacts:", n)
+    print("Merged contacts:", len(result))
+    print("Execution time:", round(end - start, 4), "seconds")
+
+
+# Test 1000 and 100000 contacts
+print("\nPERFORMANCE TEST")
+
+performance_test(1000)
+performance_test(100000)
+
