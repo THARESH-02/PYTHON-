@@ -1,1 +1,68 @@
 
+POSITIVE = {"good", "clean", "fast", "helpful", "improved"}
+NEGATIVE = {"bad", "dirty", "slow", "rude", "smoke", "broken"}
+NEGATORS = {"not", "never", "no"}
+
+
+def score(text):
+    """
+    +1 for positive word
+    -1 for negative word
+    A preceding negator flips the word's score.
+    """
+
+    words = (text.lower()
+             .replace(",", "")
+             .replace(".", "")
+             .replace("!", "")
+             .replace("?", "")
+             .split())
+
+    total = 0
+
+    for i, word in enumerate(words):
+
+        if word in POSITIVE:
+            value = 1
+
+        elif word in NEGATIVE:
+            value = -1
+
+        else:
+            value = 0
+
+        # Check whether previous word is a negator
+        if i > 0 and words[i - 1] in NEGATORS:
+            value = -value
+
+        total += value
+
+    return total
+
+
+def label(text):
+    s = score(text)
+
+    if s > 0:
+        return "positive"
+    elif s < 0:
+        return "negative"
+    else:
+        return "neutral"
+
+
+# Test complaints
+complaints = [
+    "Roads are clean and the bus was fast.",
+    "Smoke from the factory, air is bad.",
+    "The staff were not helpful.",
+    "Not bad, service improved."
+]
+
+# Display results
+print("SENTIMENT ANALYSIS")
+print("------------------------------")
+
+for complaint in complaints:
+    print(f"{label(complaint):8} | {complaint}")
+
