@@ -1,1 +1,29 @@
+def calculate_payment(fat, litres, season):
+    rate_card = {
+        "April-June": 32.00
+    }
 
+    base_rate = rate_card[season]
+    fat_rate = 0.45
+
+    amount = base_rate + (fat * fat_rate)
+
+    bonus = 0
+    if litres > 500:
+        bonus = litres * 0.50
+
+    total = (amount * litres) + bonus
+
+    return round(total, 2)
+
+
+# Test 1: April-June
+fat = 8.5
+litres = 600
+
+payment = calculate_payment(fat, litres, "April-June")
+
+print("Season: April-June")
+print("Fat:", fat)
+print("Milk Quantity:", litres)
+print("Total Payment: Rs.", format(payment, ".2f"))
